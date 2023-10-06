@@ -42,14 +42,17 @@ func scrape(){
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement){
 		link := e.Attr("href")
-		if !strings.HasPrefix(link, "/Forum-Stealer-Logs"){
+		if !strings.HasPrefix(link, "https://www.breachforums.is") {
 			return
 		}
 		e.Request.Visit(e.Request.AbsoluteURL(link))
 	})
-	c.OnHTML("div[class=forums__post]", func(e *colly.HTMLElement){
-		if e.DOM.Find("a[href]").Length() == 0{
+	c.OnHTML("div[class=thread__icon ficon_3]", func(e *colly.HTMLElement){
+		link := e.DOM.Find("a[href]").Text()
+		if len(link) == 0{
 			return
+		}else{
+			e.Request.Visit(e.Request.AbsoluteURL(link))
 		}
 })
 	c.OnRequest(func(r *colly.Request){
