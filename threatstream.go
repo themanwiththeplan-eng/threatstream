@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly"
 ) // import "net/http"
@@ -33,16 +34,12 @@ func scrape(){
 	c := colly.NewCollector(
 	colly.UserAgent(userAgent),
 	colly.AllowURLRevisit(),
-	colly.AllowedDomains("www.breachforums.is"),
+	colly.AllowedDomains("breachforums.is"),
 	)
-	
-	c.OnResponse(func(r *colly.Response){
-		fmt.Println(r.StatusCode)
-	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement){
 		link := e.Attr("href")
-		if !strings.HasPrefix(link, "https://www.breachforums.is") {
+		if !strings.HasPrefix(link, "breachforums.is") {
 			return
 		}
 		e.Request.Visit(e.Request.AbsoluteURL(link))
@@ -57,11 +54,16 @@ func scrape(){
 })
 	c.OnRequest(func(r *colly.Request){
 		fmt.Println("Visiting", r.URL.String())
+		c.SetRequestTimeout(10 * time.Second)
 	})
 	c.OnError(func(r *colly.Response, err error){
 		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
-	c.Visit("https://www.breachforums.is")
+
+	c.OnResponse(func(r *colly.Response){
+		fmt.Println(r.StatusCode)
+	})
+	c.Visit("https://breachforums.is/")
 	log.Println(c)
 }
 
