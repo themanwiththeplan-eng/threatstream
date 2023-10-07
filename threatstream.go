@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/gocolly/colly"
 ) // import "net/http"
 
+type Threat struct{
+	
+}
 func rua() string{
 	rua := [10] string{
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/37.0.2062.94 Chrome/37.0.2062.94 Safari/537.36", 
@@ -28,32 +34,37 @@ func scrape(){
 	c := colly.NewCollector(
 	colly.UserAgent(userAgent),
 	colly.AllowURLRevisit(),
-	colly.AllowedDomains("https://www.breachforums.is", "https://www.exposed.vc"),
+	colly.AllowedDomains("breachforums.is"),
 	)
-	err := c.Post("https://breachforums.is/member?action=login", map[string]string{
-		"username": "username",
-		"password": "password",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	c.OnResponse(func(r *colly.Response){
-		fmt.Println(r.StatusCode)
+	c.OnHTML("a[href]", func(e *colly.HTMLElement){
+		link := e.Attr("href")
+		if !strings.HasPrefix(link, "breachforums.is") {
+			return
+		}
+		e.Request.Visit(e.Request.AbsoluteURL(link))
 	})
-
-	c.OnHTML("*", func(e *colly.HTMLElement){
-		fmt.Println(e.Text)
-		
-	})
+	c.OnHTML("div[class=thread__icon ficon_3]", func(e *colly.HTMLElement){
+		link := e.DOM.Find("a[href]").Text()
+		if len(link) == 0{
+			return
+		}else{
+			e.Request.Visit(e.Request.AbsoluteURL(link))
+		}
+})
 	c.OnRequest(func(r *colly.Request){
 		fmt.Println("Visiting", r.URL.String())
+		c.SetRequestTimeout(10 * time.Second)
 	})
 	c.OnError(func(r *colly.Response, err error){
 		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
-	c.Visit("https://www.breachforums.is")
-	c.Visit("https://www.exposed.vc")
+
+	c.OnResponse(func(r *colly.Response){
+		fmt.Println(r.StatusCode)
+	})
+	c.Visit("https://breachforums.is/")
+	log.Println(c)
 }
 
 func main(){
