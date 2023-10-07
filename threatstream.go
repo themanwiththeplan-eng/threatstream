@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -68,5 +70,17 @@ func scrape(){
 }
 
 func main(){
-scrape()
+	scrape()
+
+	fName := "threatstream.csv"
+	f, err := os.Create(fName)
+	if err != nil {
+		log.Fatal(err)
+		return	
+	}
+	defer f.Close()
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+
+	writer.Write([]string{"URL", "Threat"})
 }
