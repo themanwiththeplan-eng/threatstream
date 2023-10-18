@@ -1,9 +1,11 @@
 package main
 
 import (
-	
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/gocolly/colly"
 )
 
 
@@ -38,4 +40,37 @@ import (
 		if !found {
 			t.Errorf("Unexpected user agent: %s", rua)
 		}
+	}
+
+	func testScrape(t *testing.T) {
+		// Test case: Check if the scrape function visits the correct URL
+		t.Run("Visit Correct URL", func(t *testing.T) {
+			// Mock the colly collector
+			mockCollector := &colly.Collector{}
+	
+			// Create a mock request
+			mockRequest := &colly.Request{}
+			mockCollector.OnResponse(func(r *colly.Response) {
+				// Assert that the correct URL is visited
+				expectedURL := "https://breachforums.is/"
+				if r.Request.URL.String() != expectedURL {
+					t.Errorf("Expected to visit URL %s, got: %s", expectedURL, r.Request.URL.String())
+				}
+			})
+			mockCollector.OnRequest(func(r *colly.Request) {
+				mockRequest.Visit(r.URL.String())
+			})
+	
+			// Set the mock collector
+			mockCollector.SetRequestTimeout(10 * time.Second)
+			mockCollector.OnError(func(r *colly.Response, err error) {
+				// Assert that the error is not nil
+				if err != nil {
+					t.Errorf("Unexpected error: %s", err)
+				}
+			})
+	
+			// Call the scrape function
+			scrape()
+		})
 	}
