@@ -68,7 +68,10 @@ func scrape(){
 	c.Visit("https://breachforums.is/")
 	log.Println(c)
 }
+func sendEmail(){
+	// TODO: Send an email
 
+}
 func main(){
 	scrape()
 
